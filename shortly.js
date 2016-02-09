@@ -4,12 +4,14 @@ var partials = require('express-partials');
 var bodyParser = require('body-parser');
 
 
+
 var db = require('./app/config');
 var Users = require('./app/collections/users');
 var User = require('./app/models/user');
 var Links = require('./app/collections/links');
 var Link = require('./app/models/link');
 var Click = require('./app/models/click');
+var session = require('express-session');
 
 var app = express();
 
@@ -22,11 +24,23 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+app.use(session({
+  secret: 'secret_string',
+  resave: false,
+  saveUninitialized: false
+}));
 
 app.get('/', 
 function(req, res) {
-  //console.log(req.body);
-  res.render('index');
+  //if current session
+  if(req.session.loggedIn){
+    res.render('index');
+  } else{
+    res.render('login')
+  }
+  
+  //else
+    //redirect to login
 });
 
 app.get('/signup', 
@@ -84,8 +98,69 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
-app.post('/create', function(req, res){
-  console.log()
+/*app.post('/create', function(req, res){
+  console.log('hello');
+});*/
+
+app.post('/login', function(req, res){  
+
+  /*redirect('index');
+  Links.reset().fetch().then(function(links) {
+    res.send(200, links.models);
+  });*/
+  //encrypt password
+  //check info against database
+  //if match
+    //set session login to true
+    //redirect to index
+  //else
+    //print login error
+});
+app.post('/signup', function(req, res){
+  var credentials = req.body;
+  if( ! credentials.password || !credentials.username ){
+    //return res.end();    
+  }
+  new User({ username: credentials.username }).fetch().then(function(found) {
+      if(found){
+        //login user
+      }else{
+        //create new user
+        var newUser = new User({
+          username: credentials.username,
+          password: ''        
+        });
+        newUser.password = newUser.encryptPassword(credentials.password);
+        console.log(newUser.password);
+        //add user to db
+        //login user
+      }
+
+    });
+  //   if (found) {
+  //     res.send(200, found.attributes);
+  //   } else {
+  //     util.getUrlTitle(uri, function(err, title) {
+  //       if (err) {
+  //         console.log('Error reading URL heading: ', err);
+  //         return res.send(404);
+  //       }
+
+  //       var link = new Link({
+  //         url: uri,
+  //         title: title,
+  //         base_url: req.headers.origin
+  //       });
+
+  //       link.save().then(function(newLink) {
+  //         Links.add(newLink);
+  //         res.send(200, newLink);
+  //       });
+  //     });
+  //   }
+  //});
+
+
 });
 
 
