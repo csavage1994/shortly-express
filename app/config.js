@@ -39,6 +39,13 @@ db.knex.schema.hasTable('clicks').then(function(exists) {
       console.log('Created Table', table);
     });
   }
+
+  /*db.knex.schema.hasTable('clicks').then(function(exists){
+    if(exists){
+      console.log(db);
+    }
+  });*/
+
 });
 
 /************************************************************/

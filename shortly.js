@@ -25,12 +25,19 @@ app.use(express.static(__dirname + '/public'));
 
 app.get('/', 
 function(req, res) {
+  //console.log(req.body);
   res.render('index');
 });
 
-app.get('/create', 
+app.get('/signup', 
 function(req, res) {
-  res.render('index');
+  res.render('signup');
+});
+
+app.get('/create',
+  function(req, res){
+    //console.log(req.body);
+    res.render('create');
 });
 
 app.get('/links', 
@@ -77,7 +84,9 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
-
+app.post('/create', function(req, res){
+  console.log()
+});
 
 
 /************************************************************/
