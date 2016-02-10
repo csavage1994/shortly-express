@@ -133,7 +133,7 @@ app.post('/signup', function(req, res){
           //create new user
           
           // newUser.password = newUser.encryptPassword(credentials.password);
-          bcrypt.hash(credentials.password, req.session.secret, null, function(err, hash){
+          bcrypt.hash(credentials.password, null, null, function(err, hash){
             var newUser = new User({
               username: credentials.username,
               password: hash      
@@ -145,7 +145,7 @@ app.post('/signup', function(req, res){
             util.createSession(req, res, newUser);
             req.session.loggedIn = true;
             res.render('index');
-          })
+          });
           //add user to db
           //login user
         }
@@ -158,7 +158,6 @@ app.post('/signup', function(req, res){
 
 app.post('/login', function(req, res){
   var credentials = req.body;
-  console.log('here');
   if( !credentials.password || !credentials.username ){
     //return res.end();    
   }
@@ -168,13 +167,18 @@ app.post('/login', function(req, res){
       console.log('Account does not exist');
       res.render('login');
     } else{
-      console.log(found.get('password'));
-      res.send(200, found);
-      // bcrypt.compare(credentials.password,  ,function(err, result){
-      //   util.createSession(req, res, newUser);
-      //   req.session.loggedIn = true;
-      //   res.render('index');
-      // })
+
+      bcrypt.compare(credentials.password, found.get('password') ,function(err, result){
+        console.log(credentials.password);
+        if(result){
+         util.createSession(req, res, found);
+         req.session.loggedIn = true;
+         res.render('index');          
+        } else{
+          console.log('Incorrect login credentials');
+          res.render('login');
+        }
+      });
     }  
   });
 
