@@ -2,7 +2,7 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
-
+var bcrypt = require('bcrypt-nodejs');
 
 
 var db = require('./app/config');
@@ -30,13 +30,12 @@ app.use(session({
   saveUninitialized: false
 }));
 
-app.get('/', 
-function(req, res) {
+app.get('/', function(req, res) {
   //if current session
-  if(req.session.loggedIn){
-    res.render('index');
+  if(!req.session.loggedIn){
+    res.render('login');
   } else{
-    res.render('login')
+    res.render('index');
   }
   
   //else
@@ -50,8 +49,12 @@ function(req, res) {
 
 app.get('/create',
   function(req, res){
+    if(req.session.loggedIn){
+      res.render('create');
+    }else{
+      res.redirect('/login')
     //console.log(req.body);
-    res.render('create');
+    }
 });
 
 app.get('/links', 
@@ -102,7 +105,7 @@ function(req, res) {
   console.log('hello');
 });*/
 
-app.post('/login', function(req, res){  
+// app.post('/login', function(req, res){  
 
   /*redirect('index');
   Links.reset().fetch().then(function(links) {
@@ -115,51 +118,65 @@ app.post('/login', function(req, res){
     //redirect to index
   //else
     //print login error
-});
+// });
 app.post('/signup', function(req, res){
   var credentials = req.body;
-  if( ! credentials.password || !credentials.username ){
+  if( !credentials.password || !credentials.username ){
+    //return res.end();    
+  }else{
+    new User({ username: credentials.username }).fetch().then(function(found) {
+        if(found){
+          //login user
+          console.log('Account already exists');
+          res.render('login');
+        }else{
+          //create new user
+          
+          // newUser.password = newUser.encryptPassword(credentials.password);
+          bcrypt.hash(credentials.password, req.session.secret, null, function(err, hash){
+            var newUser = new User({
+              username: credentials.username,
+              password: hash      
+            });
+            newUser.save().then(function(err, newUser){
+              Users.add(newUser);
+              res.send(200, newUser);
+            });
+            util.createSession(req, res, newUser);
+            req.session.loggedIn = true;
+            res.render('index');
+          })
+          //add user to db
+          //login user
+        }
+
+      //set up listener?
+    
+      });
+  }
+});
+
+app.post('/login', function(req, res){
+  var credentials = req.body;
+  console.log('here');
+  if( !credentials.password || !credentials.username ){
     //return res.end();    
   }
   new User({ username: credentials.username }).fetch().then(function(found) {
-      if(found){
-        //login user
-      }else{
-        //create new user
-        var newUser = new User({
-          username: credentials.username,
-          password: ''        
-        });
-        newUser.password = newUser.encryptPassword(credentials.password);
-        console.log(newUser.password);
-        //add user to db
-        //login user
-      }
+    if(!found){
 
-    });
-  //   if (found) {
-  //     res.send(200, found.attributes);
-  //   } else {
-  //     util.getUrlTitle(uri, function(err, title) {
-  //       if (err) {
-  //         console.log('Error reading URL heading: ', err);
-  //         return res.send(404);
-  //       }
-
-  //       var link = new Link({
-  //         url: uri,
-  //         title: title,
-  //         base_url: req.headers.origin
-  //       });
-
-  //       link.save().then(function(newLink) {
-  //         Links.add(newLink);
-  //         res.send(200, newLink);
-  //       });
-  //     });
-  //   }
-  //});
-
+      console.log('Account does not exist');
+      res.render('login');
+    } else{
+      console.log(found.get('password'));
+      res.send(200, found);
+      // bcrypt.compare(credentials.password,  ,function(err, result){
+      //   util.createSession(req, res, newUser);
+      //   req.session.loggedIn = true;
+      //   res.render('index');
+      // })
+    }  
+  });
 
 });
 

@@ -1,5 +1,5 @@
 var db = require('../config');
-var Link = require('./link.js')
+var Link = require('./link')
 var bcrypt = require('bcrypt-nodejs');
 var Promise = require('bluebird');
 
@@ -8,11 +8,7 @@ var User = db.Model.extend({
   hasTimestamps: true,
   url : function(){
     return this.hasMany(Link)
-  },
-  encryptPassword: function(string){
-    // bcrypt
-    return bcrypt.hash(string);
-  }  
+  }
 });
 
 module.exports = User;
